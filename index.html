@@ -1,38 +1,1340 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
-    <title>Embedding Vega-Lite</title>
-    <script src="https://cdn.jsdelivr.net/npm/vega@6.0.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega-lite@6.1.0"></script>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #eaeaea, #f5f5f5); 
+        color: #333; 
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+      }
+
+      #dashboard-background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(0, 0, 0, 0.05) 1%, transparent 1%) 0 0,
+                    radial-gradient(circle, rgba(0, 0, 0, 0.05) 1%, transparent 1%) 5px 5px;
+        background-size: 10px 10px;
+        pointer-events: none;
+        z-index: -1;
+      }
+
+      .dashboard {
+        width: 90%;
+        max-width: 1800px;
+        background-color: rgba(230, 230, 230, 0.9);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        overflow-y: auto;
+        margin-top: 5px;
+      }
+
+      .parent {
+        background-color: rgba(245, 245, 245, 0.85);
+        padding: 30px;
+        text-align: center;
+        border-radius: 12px;
+      }
+      .parent:first-of-type {
+        margin-bottom: 15px;
+      }
+
+      .parent:not(:first-of-type) {
+        margin-bottom: 15px;
+      }
+      .child {
+        display: inline-block;
+        padding: 5px;
+        margin-top: 30px;
+        margin-bottom: 30px;
+        vertical-align: middle;
+      }
+
+      h1, h2, h3 {
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+        color: #444;
+      }
+
+      button {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s ease;
+      }
+
+      button:hover {
+        background-color: #2980b9;
+      }
+      
+  select#datasetSelect {
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    color: #333;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px 16px; 
+    width: 210px;
+    height: 50px; 
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    appearance: none;
+    outline: none;
+    cursor: pointer;
+    transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 6"><polygon points="0,0 10,0 5,6" fill="gray"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 12px 12px;
+  }
+
+
+  select#datasetSelect::-ms-expand {
+    display: none;
+  }
+
+  select#datasetSelect {
+    -moz-appearance: none;
+  }
+
+  select#datasetSelect {
+    -webkit-appearance: none;
+  }
+
+  select#datasetSelect:hover {
+    background-color: #f1f1f1;
+    border-color: #ccc;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  select#datasetSelect:focus {
+    border-color: #0078d7;
+    box-shadow: 0px 0px 0px 3px rgba(0, 120, 215, 0.3);
+  }
+  .slider {
+  -webkit-appearance: none;
+  width: 90%;
+  height: 25px;
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+.slider:hover {
+  opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 25px;
+  background: #4295d0;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 20px;
+  height: 25px;
+  background: #4295d0;
+  cursor: pointer;
+}
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/vega@6.1.2"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.29.0"></script>
+    <title>VAST-MINI-Challenge-1</title>
   </head>
   <body>
-    <div id="vis"></div>
-
+    <div class="dashboard">
+      <div class="parent">
+        <div>
+          <label for="datasetSelect">Choose a dataset:</label>
+          <select id="datasetSelect">
+            <option value="shake_intensity">Shake Intensity</option>
+            <option value="buildings">Buildings</option>
+            <option value="medical">Medical</option>
+            <option value="power">Power</option>
+            <option value="roads_and_bridges">Roads and Bridges</option>
+            <option value="sewer_and_water">Sewer and Water</option>
+          </select>
+        </div>
+        <div class="child" id="vis"></div>
+        <div class="child" id="vis1"></div>
+        <div class="slidecontainer", id="controls">
+          <input type="range" id="timeSlider" min="0" max="1440" step="1" value="0" class="slider"/>
+          <p></p>
+          <span id="timeLabel"></span>
+          <button id="togglePauseButton">Pause Animation</button>
+        </div>
+      </div>
+      <div class="parent">
+        <div style="margin-top: 5px;" id="vis2"></div>
+      </div>
+    </div>
     <script type="text/javascript">
-      var yourVlSpec = {
-        $schema: 'https://vega.github.io/schema/vega-lite/v6.json',
-        description: 'A simple bar chart with embedded data.',
-        data: {
-          values: [
-            {a: 'A', b: 28},
-            {a: 'B', b: 55},
-            {a: 'C', b: 43},
-            {a: 'D', b: 91},
-            {a: 'E', b: 81},
-            {a: 'F', b: 53},
-            {a: 'G', b: 19},
-            {a: 'H', b: 87},
-            {a: 'I', b: 52},
-          ],
-        },
-        mark: 'bar',
-        encoding: {
-          x: {field: 'a', type: 'ordinal'},
-          y: {field: 'b', type: 'quantitative'},
-        },
+      var VisMapSpec = {
+        "$schema": "https://vega.github.io/schema/vega/v6.1.2.json",
+        "width": 700,
+        "height": 650,
+        "autosize": "none",
+        "signals": [
+          {
+            "name": "translate0",
+            "update": "width / 1.5"
+          },
+          {
+            "name": "translate1",
+            "update": "height"
+          },
+          {
+            "name": "paused",
+            "value": false
+          },
+          {
+            "name": "currentTimeIndex",
+            "value": 0,
+            "on": [
+              {
+                "events": {"signal": "timer"},
+                "update": "(currentTimeIndex + 1) % length(data('times'))"
+              }
+            ]
+          },
+          {
+            "name": "selected_time",
+            "update": "data('times')[currentTimeIndex].time"
+          },
+          {
+            "name": "timer",
+            "value": 0,
+            "update": "paused ? timer : timer + 1",
+            "on": [
+              {
+                "events": {"type": "timer", "throttle": 1000},
+                "update": "paused ? timer : now()"
+              }
+            ]
+          },
+          {
+            "name": "time_progress",
+            "update": "currentTimeIndex / (length(data('times')) - 1)"
+          }
+        ],
+        "projections": [
+          {
+            "name": "projection",
+            "size": {"signal": "[translate0, translate1]"},
+            "fit": {"signal": "data('Himark')"}
+          }
+        ],
+        "data": [
+          {
+            "name": "times",
+            "url": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/Time.csv",
+            "format": {"type": "csv"}
+          },
+          {
+            "name": "rating",
+            "url": "",
+            "format": {"type": "csv"},
+            "transform": [
+              {
+                "type": "aggregate",
+                "groupby": ["Location_name", "time"],
+                "fields": ["rating"],
+                "ops": ["mean"],
+                "as": ["mean_rating"]
+              },
+              {"type": "filter", "expr": "datum[\"time\"]=== selected_time"}
+            ]
+          },
+          {
+            "name": "Himark",
+            "url": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/map.geo.json",
+            "format": {
+              "type": "json",
+              "property": "features"
+            },
+            "transform": [
+              {
+                "type": "lookup",
+                "from": "rating",
+                "key": "Location_name",
+                "fields": ["properties.Nbrhood"],
+                "values": ["mean_rating"]
+              },
+              {
+                "type": "formula",
+                "as": "rating_clean",
+                "expr": "isNaN(datum.mean_rating) || datum.mean_rating == null ? 0 : datum.mean_rating"
+              }
+            ]
+          }
+        ],
+        "scales": [
+          {
+            "name": "color",
+            "type": "linear",
+            "domain": [0, 10],
+            "range": {"scheme": "oranges"},
+            "zero": true,
+            "nice": true
+          }
+        ],
+        "legends": [
+          {
+            "fill": "color",
+            "orient": "top-right",
+            "title": "Intensity"
+          }
+        ],
+        "marks": [
+          {
+            "type": "shape",
+            "from": {
+              "data": "Himark"
+            },
+            "encode": {
+              "update": {
+                "fill": {"scale": "color", "field": "rating_clean"}
+              },
+              "hover": {
+                "fill": {"value": "grey"}
+              }
+            },
+            "transform": [
+              {
+                "type": "geoshape",
+                "projection": "projection"
+              }
+            ]
+          }
+        ]
       };
-      vegaEmbed('#vis', yourVlSpec);
+
+    // Dataset URLs
+    const datasetURLs = {
+      "shake_intensity": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/shake_intensity_sorted.csv",
+      "buildings": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/buildings_sorted.csv",
+      "medical": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/medical_sorted.csv",
+      "power": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/power_sorted.csv",
+      "roads_and_bridges": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/roads_and_bridges_sorted.csv",
+      "sewer_and_water": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/sewer_and_water_sorted.csv"
+    };
+
+    var VisBoxSpec = {
+      "$schema": "https://vega.github.io/schema/vega/v6.1.2.json",
+      "padding": 5,
+      "width": 700,
+      "height": 650,
+      "style": "cell",
+      "signals":[
+        {
+          "name": "paused",
+          "value": false
+        },
+        {
+          "name": "currentTimeIndex",
+          "value": 0,
+          "on": [
+            {
+              "events": {"signal": "timer"},
+              "update": "(currentTimeIndex + 1) % length(data('times'))"
+            }
+          ]
+        },
+        {
+          "name": "selected_time",
+          "update": "data('times')[currentTimeIndex].time"
+        },
+        {
+          "name": "timer",
+          "value": 0,
+          "update": "paused ? timer : timer + 1",
+          "on": [
+            {
+              "events": {"type": "timer", "throttle": 1000},
+              "update": "paused ? timer : now()"
+            }
+          ]
+        }
+      ],
+      "data": [
+        {
+          "name": "times",
+          "url": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/Time.csv",
+          "format": {"type": "csv"}
+        },
+        {
+          "name": "source_0",
+          "url": "",
+          "format": {"type": "csv", "parse": {"time": "string"}, "delimiter": ","},
+          "transform": [
+            {"type": "filter", "expr": "datum[\"time\"]=== selected_time"},
+            {
+              "type": "formula",
+              "expr": "isNaN(datum['rating']) ? 0 : datum['rating']",
+              "as": "rating"
+            },
+            {
+              "type": "formula",
+              "expr": "(datum['rating']) === \"NA\" ? 0 : datum['rating']",
+              "as": "rating"
+            }
+          ]
+        },
+        {
+          "name": "data_0",
+          "source": "source_0",
+          "transform": [
+            {
+              "type": "joinaggregate",
+              "as": ["lower_box_rating", "upper_box_rating"],
+              "ops": ["q1", "q3"],
+              "fields": ["rating", "rating"],
+              "groupby": ["Location_name", "Location_name"]
+            }
+          ]
+        },
+        {
+          "name": "data_1",
+          "source": "data_0",
+          "transform": [
+            {
+              "type": "filter",
+              "expr": "(datum['rating'] < datum['lower_box_rating'] - 1.5 * (datum['upper_box_rating'] - datum['lower_box_rating'])) || (datum['rating'] > datum['upper_box_rating'] + 1.5 * (datum['upper_box_rating'] - datum['lower_box_rating']))"
+            },
+            {
+              "type": "filter",
+              "expr": "isValid(datum[\"rating\"]) && isFinite(+datum[\"rating\"])"
+            }
+          ]
+        },
+        {
+          "name": "data_2",
+          "source": "data_0",
+          "transform": [
+            {
+              "type": "filter",
+              "expr": "(datum['lower_box_rating'] - 1.5 * (datum['upper_box_rating'] - datum['lower_box_rating']) <= datum['rating']) && (datum['rating'] <= datum['upper_box_rating'] + 1.5 * (datum['upper_box_rating'] - datum['lower_box_rating']))"
+            },
+            {
+              "type": "aggregate",
+              "groupby": ["Location_name"],
+              "ops": ["min", "max", "min", "max"],
+              "fields": [
+                "rating",
+                "rating",
+                "lower_box_rating",
+                "upper_box_rating"
+              ],
+              "as": [
+                "lower_whisker_rating",
+                "upper_whisker_rating",
+                "lower_box_rating",
+                "upper_box_rating"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "data_3",
+          "source": "data_2",
+          "transform": [
+            {
+              "type": "filter",
+              "expr": "isValid(datum[\"lower_whisker_rating\"]) && isFinite(+datum[\"lower_whisker_rating\"])"
+            }
+          ]
+        },
+        {
+          "name": "data_4",
+          "source": "data_2",
+          "transform": [
+            {
+              "type": "filter",
+              "expr": "isValid(datum[\"upper_box_rating\"]) && isFinite(+datum[\"upper_box_rating\"])"
+            }
+          ]
+        },
+        {
+          "name": "data_5",
+          "source": "source_0",
+          "transform": [
+            {
+              "type": "aggregate",
+              "groupby": ["Location_name"],
+              "ops": ["q1", "q3", "median", "min", "max"],
+              "fields": ["rating", "rating", "rating", "rating", "rating"],
+              "as": [
+                "lower_box_rating",
+                "upper_box_rating",
+                "mid_box_rating",
+                "min_rating",
+                "max_rating"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "data_6",
+          "source": "data_5",
+          "transform": [
+            {
+              "type": "filter",
+              "expr": "isValid(datum[\"lower_box_rating\"]) && isFinite(+datum[\"lower_box_rating\"])"
+            }
+          ]
+        },
+        {
+          "name": "data_7",
+          "source": "data_5",
+          "transform": [
+            {
+              "type": "filter",
+              "expr": "isValid(datum[\"mid_box_rating\"]) && isFinite(+datum[\"mid_box_rating\"])"
+            }
+          ]
+        }
+      ],
+      "marks": [
+        {
+          "name": "layer_0_layer_0_marks",
+          "type": "symbol",
+          "style": ["point", "boxplot-outliers"],
+          "from": {"data": "data_1"},
+          "encode": {
+            "update": {
+              "opacity": {"value": 0.7},
+              "fill": {"value": "transparent"},
+              "stroke": {"scale": "color", "field": "Location_name"},
+              "ariaRoleDescription": {"value": "point"},
+              "description": {
+                "signal": "\"rating Rating: \" + (format(datum[\"rating\"], \"\")) + \"; Location: \" + (isValid(datum[\"Location_name\"]) ? datum[\"Location_name\"] : \"\"+datum[\"Location_name\"]) + \"; Location_name: \" + (isValid(datum[\"Location_name\"]) ? datum[\"Location_name\"] : \"\"+datum[\"Location_name\"])"
+              },
+              "x": {"scale": "x", "field": "rating"},
+              "y": {"scale": "y", "field": "Location_name", "band": 0.5}
+            }
+          }
+        },
+        {
+          "name": "layer_0_layer_1_layer_0_marks",
+          "type": "rule",
+          "style": ["rule", "boxplot-rule"],
+          "aria": false,
+          "from": {"data": "data_3"},
+          "encode": {
+            "update": {
+              "stroke": {"value": "black"},
+              "tooltip": {
+                "signal": "{\"Upper Whisker of rating Rating\": format(datum[\"upper_whisker_rating\"], \"\"), \"Lower Whisker of rating Rating\": format(datum[\"lower_whisker_rating\"], \"\"), \"Location\": isValid(datum[\"Location_name\"]) ? datum[\"Location_name\"] : \"\"+datum[\"Location_name\"], \"Location_name\": isValid(datum[\"Location_name\"]) ? datum[\"Location_name\"] : \"\"+datum[\"Location_name\"]}"
+              },
+              "x": {"scale": "x", "field": "lower_whisker_rating"},
+              "x2": {"scale": "x", "field": "lower_box_rating"},
+              "y": {"scale": "y", "field": "Location_name", "band": 0.5}
+            }
+          }
+        },
+        {
+          "name": "layer_0_layer_1_layer_1_marks",
+          "type": "rule",
+          "style": ["rule", "boxplot-rule"],
+          "aria": false,
+          "from": {"data": "data_4"},
+          "encode": {
+            "update": {
+              "stroke": {"value": "black"},
+              "tooltip": {
+                "signal": "{\"Upper Whisker of rating Rating\": format(datum[\"upper_whisker_rating\"], \"\"), \"Lower Whisker of rating Rating\": format(datum[\"lower_whisker_rating\"], \"\"), \"Location\": isValid(datum[\"Location_name\"]) ? datum[\"Location_name\"] : \"\"+datum[\"Location_name\"], \"Location_name\": isValid(datum[\"Location_name\"]) ? datum[\"Location_name\"] : \"\"+datum[\"Location_name\"]}"
+              },
+              "x": {"scale": "x", "field": "upper_box_rating"},
+              "x2": {"scale": "x", "field": "upper_whisker_rating"},
+              "y": {"scale": "y", "field": "Location_name", "band": 0.5}
+            }
+          }
+        },
+        {
+          "name": "layer_1_layer_0_marks",
+          "type": "rect",
+          "style": ["bar", "boxplot-box"],
+          "from": {"data": "data_6"},
+          "encode": {
+            "update": {
+              "ariaRoleDescription": {"value": "box"},
+              "fill": {"scale": "color", "field": "Location_name"},
+              "tooltip": {
+                "signal": "{\"Max of rating Rating\": format(datum[\"max_rating\"], \"\"), \"Q3 of rating Rating\": format(datum[\"upper_box_rating\"], \"\"), \"Median of rating Rating\": format(datum[\"mid_box_rating\"], \"\"), \"Q1 of rating Rating\": format(datum[\"lower_box_rating\"], \"\"), \"Min of rating Rating\": format(datum[\"min_rating\"], \"\"), \"Location\": isValid(datum[\"Location_name\"]) ? datum[\"Location_name\"] : \"\"+datum[\"Location_name\"], \"Location_name\": isValid(datum[\"Location_name\"]) ? datum[\"Location_name\"] : \"\"+datum[\"Location_name\"]}"
+              },
+              "description": {
+                "signal": "\"rating Rating: \" + (format(datum[\"lower_box_rating\"], \"\")) + \"; Location: \" + (isValid(datum[\"Location_name\"]) ? datum[\"Location_name\"] : \"\"+datum[\"Location_name\"]) + \"; upper_box_rating: \" + (format(datum[\"upper_box_rating\"], \"\")) + \"; Location_name: \" + (isValid(datum[\"Location_name\"]) ? datum[\"Location_name\"] : \"\"+datum[\"Location_name\"]) + \"; Max of rating Rating: \" + (format(datum[\"max_rating\"], \"\")) + \"; Q3 of rating Rating: \" + (format(datum[\"upper_box_rating\"], \"\")) + \"; Median of rating Rating: \" + (format(datum[\"mid_box_rating\"], \"\")) + \"; Q1 of rating Rating: \" + (format(datum[\"lower_box_rating\"], \"\")) + \"; Min of rating Rating: \" + (format(datum[\"min_rating\"], \"\"))"
+              },
+              "x": {"scale": "x", "field": "lower_box_rating"},
+              "x2": {"scale": "x", "field": "upper_box_rating"},
+              "yc": {"scale": "y", "field": "Location_name", "band": 0.5},
+              "height": {"value": 14}
+            }
+          }
+        },
+        {
+          "name": "layer_1_layer_1_marks",
+          "type": "rect",
+          "style": ["tick", "boxplot-median"],
+          "aria": false,
+          "from": {"data": "data_7"},
+          "encode": {
+            "update": {
+              "opacity": {"value": 0.7},
+              "fill": [
+                {
+                  "test": "datum['lower_box_rating'] >= datum['upper_box_rating']",
+                  "scale": "color",
+                  "field": "Location_name"
+                },
+                {"value": "white"}
+              ],
+              "tooltip": {
+                "signal": "{\"Max of rating Rating\": format(datum[\"max_rating\"], \"\"), \"Q3 of rating Rating\": format(datum[\"upper_box_rating\"], \"\"), \"Median of rating Rating\": format(datum[\"mid_box_rating\"], \"\"), \"Q1 of rating Rating\": format(datum[\"lower_box_rating\"], \"\"), \"Min of rating Rating\": format(datum[\"min_rating\"], \"\"), \"Location\": isValid(datum[\"Location_name\"]) ? datum[\"Location_name\"] : \"\"+datum[\"Location_name\"], \"Location_name\": isValid(datum[\"Location_name\"]) ? datum[\"Location_name\"] : \"\"+datum[\"Location_name\"]}"
+              },
+              "yc": {"scale": "y", "field": "Location_name", "band": 0.5},
+              "height": {"value": 14},
+              "xc": {"scale": "x", "field": "mid_box_rating"},
+              "width": {"value": 1}
+            }
+          }
+        }
+      ],
+      "scales": [
+        {
+          "name": "x",
+          "type": "linear",
+          "domain": {
+            "fields": [
+              {"data": "data_1", "field": "rating"},
+              {"data": "data_3", "field": "lower_whisker_rating"},
+              {"data": "data_3", "field": "lower_box_rating"},
+              {"data": "data_4", "field": "upper_box_rating"},
+              {"data": "data_4", "field": "upper_whisker_rating"},
+              {"data": "data_6", "field": "lower_box_rating"},
+              {"data": "data_6", "field": "upper_box_rating"},
+              {"data": "data_7", "field": "mid_box_rating"}
+            ]
+          },
+          "range": [0, {"signal": "width"}],
+          "nice": true,
+          "zero": true
+        },
+        {
+          "name": "y",
+          "type": "band",
+          "domain": {
+            "fields": [
+              {"data": "data_1", "field": "Location_name"},
+              {"data": "data_3", "field": "Location_name"},
+              {"data": "data_4", "field": "Location_name"},
+              {"data": "data_6", "field": "Location_name"},
+              {"data": "data_7", "field": "Location_name"}
+            ],
+            "sort": true
+          },
+          "range": [0, {"signal": "height"}],
+          "paddingInner": 0,
+          "paddingOuter": 0
+        },
+        {
+          "name": "color",
+          "type": "ordinal",
+          "domain": {
+            "fields": [
+              {"data": "data_1", "field": "Location_name"},
+              {"data": "data_6", "field": "Location_name"},
+              {"data": "data_7", "field": "Location_name"}
+            ],
+            "sort": true
+          },
+          "range": "category"
+        }
+      ],
+      "axes": [
+        {
+          "scale": "x",
+          "orient": "bottom",
+          "gridScale": "y",
+          "grid": true,
+          "tickCount": {"signal": "ceil(width/40)"},
+          "domain": false,
+          "labels": false,
+          "aria": false,
+          "maxExtent": 0,
+          "minExtent": 0,
+          "ticks": false,
+          "zindex": 0
+        },
+        {
+          "scale": "x",
+          "orient": "bottom",
+          "grid": false,
+          "title": "Rating",
+          "labelFlush": true,
+          "labelOverlap": true,
+          "tickCount": {"signal": "ceil(width/40)"},
+          "zindex": 0
+        },
+        {
+          "scale": "y",
+          "orient": "left",
+          "grid": false,
+          "title": "Location",
+          "zindex": 0
+        }
+      ]
+    }
+
+    var VisCatSpec = {
+      "$schema": "https://vega.github.io/schema/vega/v6.1.2.json",
+      "padding": 5,
+      "height": 500,
+      "width": 1000,
+      "data": [
+        {"name": "brush_store"},
+        {
+          "name": "source_0",
+          "url": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/mc1-reports-data-sorted-split.csv",
+          "format": {
+            "type": "csv",
+            "parse": {"location": "string", "time": "date"},
+            "delimiter": ","
+          },
+          "transform": [{"type": "filter", "expr": "datum[\"Location_name\"]=== locationFilter "}]
+        },
+        {
+          "name": "data_0",
+          "source": "source_0",
+          "transform": [
+            {
+              "type": "filter",
+              "expr": "(isDate(datum[\"time\"]) || (isValid(datum[\"time\"]) && isFinite(+datum[\"time\"])))"
+            }
+          ]
+        },
+        {
+          "name": "data_1",
+          "source": "source_0",
+          "transform": [
+            {
+              "type": "aggregate",
+              "groupby": ["time", "category"],
+              "ops": ["sum"],
+              "fields": ["value"],
+              "as": ["sum_value"]
+            },
+            {
+              "type": "filter",
+              "expr": "(isDate(datum[\"time\"]) || (isValid(datum[\"time\"]) && isFinite(+datum[\"time\"]))) && isValid(datum[\"sum_value\"]) && isFinite(+datum[\"sum_value\"])"
+            }
+          ]
+        }
+      ],
+      "signals": [
+
+        {"name": "concat_0_width", "value": 50},
+        {"name": "concat_1_width", "value": 700},
+        {
+          "name": "unit",
+          "value": {},
+          "on": [
+            {"events": "pointermove", "update": "isTuple(group()) ? group() : unit"}
+          ]
+        },
+        {
+          "name": "brush",
+          "update": "vlSelectionResolve(\"brush_store\", \"union\")"
+        },
+        {
+          "name": "locationFilter",  // Adding a param for location filter
+          "value": "Palace Hills",  // Default location value
+          "bind": {
+            "input": "select",
+            "options": [
+              "Palace Hills",
+              "Northwest",
+              "Old Town",
+              "Safe Town",
+              "Southwest",
+              "Downtown",
+              "Wilson Forest",
+              "Scenic Vista",
+              "Broadview",
+              "Chapparal",
+              "Terrapin",
+              "Pepper Mill",
+              "Cheddarford",
+              "Easton",
+              "Weston",
+              "Southton",
+              "Oak Willow",
+              "East Parton",
+              "West Parton"
+            ],
+            "name": " "
+          }
+        }
+      ],
+      "layout": {"padding": 20, "bounds": "full", "align": "each"},
+      "marks": [
+        {
+          "type": "group",
+          "name": "concat_0_group",
+          "style": "cell",
+          "encode": {
+            "update": {
+              "width": {"signal": "concat_0_width"},
+              "height": {"signal": "height"}
+            }
+          },
+          "signals": [
+            {
+              "name": "brush_y",
+              "value": [],
+              "on": [
+                {
+                  "events": {
+                    "source": "scope",
+                    "type": "pointerdown",
+                    "filter": [
+                      "!event.item || event.item.mark.name !== \"brush_brush\""
+                    ]
+                  },
+                  "update": "[y(unit), y(unit)]"
+                },
+                {
+                  "events": {
+                    "source": "window",
+                    "type": "pointermove",
+                    "consume": true,
+                    "between": [
+                      {
+                        "source": "scope",
+                        "type": "pointerdown",
+                        "filter": [
+                          "!event.item || event.item.mark.name !== \"brush_brush\""
+                        ]
+                      },
+                      {"source": "window", "type": "pointerup"}
+                    ]
+                  },
+                  "update": "[brush_y[0], clamp(y(unit), 0, height)]"
+                },
+                {
+                  "events": {"signal": "brush_scale_trigger"},
+                  "update": "[scale(\"concat_0_y\", brush_time[0]), scale(\"concat_0_y\", brush_time[1])]"
+                },
+                {
+                  "events": [{"source": "view", "type": "dblclick"}],
+                  "update": "[0, 0]"
+                },
+                {
+                  "events": {"signal": "brush_translate_delta"},
+                  "update": "clampRange(panLinear(brush_translate_anchor.extent_y, brush_translate_delta.y / span(brush_translate_anchor.extent_y)), 0, height)"
+                },
+                {
+                  "events": {"signal": "brush_zoom_delta"},
+                  "update": "clampRange(zoomLinear(brush_y, brush_zoom_anchor.y, brush_zoom_delta), 0, height)"
+                }
+              ]
+            },
+            {
+              "name": "brush_time",
+              "on": [
+                {
+                  "events": {"signal": "brush_y"},
+                  "update": "brush_y[0] === brush_y[1] ? null : invert(\"concat_0_y\", brush_y)"
+                }
+              ]
+            },
+            {
+              "name": "brush_scale_trigger",
+              "value": {},
+              "on": [
+                {
+                  "events": [{"scale": "concat_0_y"}],
+                  "update": "(!isArray(brush_time) || (+invert(\"concat_0_y\", brush_y)[0] === +brush_time[0] && +invert(\"concat_0_y\", brush_y)[1] === +brush_time[1])) ? brush_scale_trigger : {}"
+                }
+              ]
+            },
+            {
+              "name": "brush_tuple",
+              "on": [
+                {
+                  "events": [{"signal": "brush_time"}],
+                  "update": "brush_time ? {unit: \"concat_0\", fields: brush_tuple_fields, values: [brush_time]} : null"
+                }
+              ]
+            },
+            {
+              "name": "brush_tuple_fields",
+              "value": [{"field": "time", "channel": "y", "type": "R"}]
+            },
+            {
+              "name": "brush_translate_anchor",
+              "value": {},
+              "on": [
+                {
+                  "events": [
+                    {
+                      "source": "scope",
+                      "type": "pointerdown",
+                      "markname": "brush_brush"
+                    }
+                  ],
+                  "update": "{x: x(unit), y: y(unit), extent_y: slice(brush_y)}"
+                }
+              ]
+            },
+            {
+              "name": "brush_translate_delta",
+              "value": {},
+              "on": [
+                {
+                  "events": [
+                    {
+                      "source": "window",
+                      "type": "pointermove",
+                      "consume": true,
+                      "between": [
+                        {
+                          "source": "scope",
+                          "type": "pointerdown",
+                          "markname": "brush_brush"
+                        },
+                        {"source": "window", "type": "pointerup"}
+                      ]
+                    }
+                  ],
+                  "update": "{x: brush_translate_anchor.x - x(unit), y: brush_translate_anchor.y - y(unit)}"
+                }
+              ]
+            },
+            {
+              "name": "brush_zoom_anchor",
+              "on": [
+                {
+                  "events": [
+                    {
+                      "source": "scope",
+                      "type": "wheel",
+                      "consume": true,
+                      "markname": "brush_brush"
+                    }
+                  ],
+                  "update": "{x: x(unit), y: y(unit)}"
+                }
+              ]
+            },
+            {
+              "name": "brush_zoom_delta",
+              "on": [
+                {
+                  "events": [
+                    {
+                      "source": "scope",
+                      "type": "wheel",
+                      "consume": true,
+                      "markname": "brush_brush"
+                    }
+                  ],
+                  "force": true,
+                  "update": "pow(1.001, event.deltaY * pow(16, event.deltaMode))"
+                }
+              ]
+            },
+            {
+              "name": "brush_modify",
+              "on": [
+                {
+                  "events": {"signal": "brush_tuple"},
+                  "update": "modify(\"brush_store\", brush_tuple, true)"
+                }
+              ]
+            }
+          ],
+          "marks": [
+            {
+              "name": "brush_brush_bg",
+              "type": "rect",
+              "clip": true,
+              "encode": {
+                "enter": {
+                  "fill": {"value": "#333"},
+                  "fillOpacity": {"value": 0.125}
+                },
+                "update": {
+                  "x": [
+                    {
+                      "test": "data(\"brush_store\").length && data(\"brush_store\")[0].unit === \"concat_0\"",
+                      "value": 0
+                    },
+                    {"value": 0}
+                  ],
+                  "y": [
+                    {
+                      "test": "data(\"brush_store\").length && data(\"brush_store\")[0].unit === \"concat_0\"",
+                      "signal": "brush_y[0]"
+                    },
+                    {"value": 0}
+                  ],
+                  "x2": [
+                    {
+                      "test": "data(\"brush_store\").length && data(\"brush_store\")[0].unit === \"concat_0\"",
+                      "field": {"group": "width"}
+                    },
+                    {"value": 0}
+                  ],
+                  "y2": [
+                    {
+                      "test": "data(\"brush_store\").length && data(\"brush_store\")[0].unit === \"concat_0\"",
+                      "signal": "brush_y[1]"
+                    },
+                    {"value": 0}
+                  ]
+                }
+              }
+            },
+            {
+              "name": "concat_0_marks",
+              "type": "symbol",
+              "style": ["circle"],
+              "interactive": true,
+              "from": {"data": "data_0"},
+              "encode": {
+                "update": {
+                  "opacity": {"value": 0.7},
+                  "fill": {"value": "lightgray"},
+                  "ariaRoleDescription": {"value": "circle"},
+                  "description": {
+                    "signal": "\"category: \" + (isValid(datum[\"category\"]) ? datum[\"category\"] : \"\"+datum[\"category\"]) + \"; time: \" + (timeFormat(datum[\"time\"], \"%b %d, %Y\"))"
+                  },
+                  "x": {"scale": "concat_0_x", "field": "category"},
+                  "y": {"scale": "concat_0_y", "field": "time"},
+                  "shape": {"value": "circle"}
+                }
+              }
+            },
+            {
+              "name": "brush_brush",
+              "type": "rect",
+              "clip": true,
+              "encode": {
+                "enter": {
+                  "cursor": {"value": "move"},
+                  "fill": {"value": "transparent"}
+                },
+                "update": {
+                  "x": [
+                    {
+                      "test": "data(\"brush_store\").length && data(\"brush_store\")[0].unit === \"concat_0\"",
+                      "value": 0
+                    },
+                    {"value": 0}
+                  ],
+                  "y": [
+                    {
+                      "test": "data(\"brush_store\").length && data(\"brush_store\")[0].unit === \"concat_0\"",
+                      "signal": "brush_y[0]"
+                    },
+                    {"value": 0}
+                  ],
+                  "x2": [
+                    {
+                      "test": "data(\"brush_store\").length && data(\"brush_store\")[0].unit === \"concat_0\"",
+                      "field": {"group": "width"}
+                    },
+                    {"value": 0}
+                  ],
+                  "y2": [
+                    {
+                      "test": "data(\"brush_store\").length && data(\"brush_store\")[0].unit === \"concat_0\"",
+                      "signal": "brush_y[1]"
+                    },
+                    {"value": 0}
+                  ],
+                  "stroke": [
+                    {"test": "brush_y[0] !== brush_y[1]", "value": "white"},
+                    {"value": null}
+                  ]
+                }
+              }
+            }
+          ],
+          "axes": [
+            {
+              "scale": "concat_0_y",
+              "orient": "left",
+              "gridScale": "concat_0_x",
+              "grid": true,
+              "tickCount": {"signal": "ceil(height/40)"},
+              "domain": false,
+              "labels": false,
+              "aria": false,
+              "maxExtent": 0,
+              "minExtent": 0,
+              "ticks": false,
+              "zindex": 0
+            },
+            {
+              "scale": "concat_0_x",
+              "orient": "bottom",
+              "grid": false,
+              "title": "category",
+              "tickCount": 3,
+              "labelAlign": "right",
+              "labelAngle": 270,
+              "labelBaseline": "middle",
+              "zindex": 0
+            },
+            {
+              "scale": "concat_0_y",
+              "orient": "left",
+              "grid": false,
+              "title": "time",
+              "labelOverlap": true,
+              "tickCount": {"signal": "ceil(height/40)"},
+              "zindex": 0
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "name": "concat_1_group",
+          "style": "cell",
+          "encode": {
+            "update": {
+              "width": {"signal": "concat_1_width"},
+              "height": {"signal": "height"}
+            }
+          },
+          "marks": [
+            {
+              "name": "concat_1_marks",
+              "type": "symbol",
+              "clip": true,
+              "style": ["circle"],
+              "interactive": false,
+              "from": {"data": "data_1"},
+              "encode": {
+                "update": {
+                  "opacity": {"value": 0.5},
+                  "fill": {"scale": "color", "field": "category"},
+                  "ariaRoleDescription": {"value": "circle"},
+                  "description": {
+                    "signal": "\"time: \" + (timeFormat(datum[\"time\"], \"%b %d, %Y\")) + \"; category: \" + (isValid(datum[\"category\"]) ? datum[\"category\"] : \"\"+datum[\"category\"]) + \"; Sum of value: \" + (format(datum[\"sum_value\"], \"\"))"
+                  },
+                  "x": {"scale": "concat_1_x", "field": "time"},
+                  "y": {"scale": "concat_1_y", "field": "category"},
+                  "size": {"scale": "size", "field": "sum_value"},
+                  "shape": {"value": "circle"}
+                }
+              }
+            }
+          ],
+          "axes": [
+            {
+              "scale": "concat_1_x",
+              "orient": "bottom",
+              "gridScale": "concat_1_y",
+              "grid": true,
+              "tickCount": {"signal": "ceil(concat_1_width/40)"},
+              "domain": false,
+              "labels": false,
+              "aria": false,
+              "maxExtent": 0,
+              "minExtent": 0,
+              "ticks": false,
+              "zindex": 0
+            },
+            {
+              "scale": "concat_1_x",
+              "orient": "bottom",
+              "grid": false,
+              "title": "time",
+              "labelFlush": true,
+              "labelOverlap": true,
+              "tickCount": {"signal": "ceil(concat_1_width/40)"},
+              "zindex": 0
+            },
+            {
+              "scale": "concat_1_y",
+              "orient": "left",
+              "grid": false,
+              "title": "category",
+              "zindex": 0
+            }
+          ]
+        }
+      ],
+      "scales": [
+        {
+          "name": "color",
+          "type": "ordinal",
+          "domain": {"data": "data_1", "field": "category", "sort": true},
+          "range": "category"
+        },
+        {
+          "name": "size",
+          "type": "sqrt",
+          "domain": {"data": "data_1", "field": "sum_value"},
+          "range": [4, 2000],
+          "zero": true
+        },
+        {
+          "name": "concat_0_x",
+          "type": "point",
+          "domain": {"data": "data_0", "field": "category", "sort": true},
+          "range": [0, {"signal": "concat_0_width"}],
+          "padding": 0.5
+        },
+        {
+          "name": "concat_0_y",
+          "type": "time",
+          "domain": {"data": "data_0", "field": "time"},
+          "range": [{"signal": "height"}, 0]
+        },
+        {
+          "name": "concat_1_x",
+          "type": "time",
+          "domain": {"data": "data_1", "field": "time"},
+          "domainRaw": {"signal": "brush[\"time\"]"},
+          "range": [0, {"signal": "concat_1_width"}]
+        },
+        {
+          "name": "concat_1_y",
+          "type": "point",
+          "domain": {"data": "data_1", "field": "category", "sort": true},
+          "range": [0, {"signal": "height"}],
+          "padding": 0.5
+        }
+      ],
+      "legends": [
+        {
+          "fill": "color",
+          "symbolType": "circle",
+          "title": "category",
+          "encode": {"symbols": {"update": {"opacity": {"value": 0.5}}}}
+        },
+        {
+          "size": "size",
+          "symbolType": "circle",
+          "title": "Sum of value",
+          "encode": {
+            "symbols": {
+              "update": {
+                "fill": {"value": "black"},
+                "fillOpacity": {"value": 0.5},
+                "opacity": {"value": 0.5},
+                "stroke": {"value": "transparent"}
+              }
+            }
+          }
+        }
+      ]
+    };
+
+    const chartElement = document.getElementById('vis');
+    const chartElement2 = document.getElementById('vis1');
+    const chartElement3 = document.getElementById('vis2');
+    vegaEmbed(chartElement3, VisCatSpec)
+
+    let view;
+    let view1;
+
+    //Update the view for vis 1 and 2
+    function updateVegaSpec(selectedDataset) {
+      // Update the dataset URL in the Vega spec
+      VisMapSpec.data[1].url = datasetURLs[selectedDataset];
+      VisBoxSpec.data[1].url = datasetURLs[selectedDataset];
+      if (view) {
+        view.finalize();
+        view1.finalize();
+      }
+
+      const runtime = vega.parse(VisMapSpec);
+      const runtime1 = vega.parse(VisBoxSpec);
+      view = new vega.View(runtime).renderer("canvas").initialize("#vis").run();
+      view1 = new vega.View(runtime1).renderer("canvas").initialize("#vis1").run();
+
+      // Fetch the time data (from a static source like "Time.csv")
+      fetch("https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/Time.csv")
+        .then(response => response.text())
+        .then(csvText => {
+          const times = csvText.split("\n").slice(1).map(row => row.split(",")[0]); 
+          const timeSlider = document.getElementById("timeSlider");
+          const timeLabel = document.getElementById("timeLabel");
+
+          timeSlider.max = times.length - 1;
+          timeSlider.value = 0; 
+          timeLabel.textContent = `Time: ${times[0]}`;
+
+          // Add event listener to update Vega chart when slider changes
+          timeSlider.oninput = function () {
+            const index = parseInt(this.value, 10);
+            console.log(index);
+            const selectedTime = times[index];
+            timeLabel.textContent = `Time: ${selectedTime}`; 
+              view.signal("currentTimeIndex", index).run(); 
+              view1.signal("currentTimeIndex", index).run();
+          };
+
+          // Add a listener to synchronize Vega's `currentTimeIndex` signal with the slider
+          view.addSignalListener("currentTimeIndex", (name, value) => {
+            console.log(value);
+            timeSlider.value = value;
+            const selectedTime = times[value];
+            timeLabel.textContent = `Time: ${selectedTime}`; 
+          });
+        });
+      }
+
+    // Initialize with the default dataset
+    updateVegaSpec("medical");
+
+    // Handle dataset change via dropdown
+    document.getElementById("datasetSelect").addEventListener("change", (event) => {
+      updateVegaSpec(event.target.value);
+      isPaused = !isPaused;
+          if (view) {
+            view.signal('paused', isPaused).run();
+            view1.signal('paused', isPaused).run();
+          }
+          button.textContent = isPaused ? 'Resume Animation' : 'Pause Animation';
+    });
+
+    // Handle play/pause button click
+    const button = document.getElementById('togglePauseButton');
+    let isPaused = false;
+
+    button.addEventListener('click', () => {
+      isPaused = !isPaused;
+      if (view) {
+        view.signal('paused', isPaused).run();
+        view1.signal('paused', isPaused).run();
+      }
+      button.textContent = isPaused ? 'Resume Animation' : 'Pause Animation';
+    });
+    
     </script>
   </body>
 </html>
