@@ -245,7 +245,7 @@
         "data": [
           {
             "name": "times",
-            "url": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/Time.csv",
+            "url": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/Data/Time.csv",
             "format": {"type": "csv"}
           },
           {
@@ -265,7 +265,7 @@
           },
           {
             "name": "Himark",
-            "url": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/map.geo.json",
+            "url": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/Data/map.geo.json",
             "format": {
               "type": "json",
               "property": "features"
@@ -329,12 +329,12 @@
 
     // Dataset URLs
     const datasetURLs = {
-      "shake_intensity": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/shake_intensity_sorted.csv",
-      "buildings": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/buildings_sorted.csv",
-      "medical": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/medical_sorted.csv",
-      "power": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/power_sorted.csv",
-      "roads_and_bridges": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/roads_and_bridges_sorted.csv",
-      "sewer_and_water": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/sewer_and_water_sorted.csv"
+      "shake_intensity": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/Data/shake_intensity_sorted.csv",
+      "buildings": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/Data/buildings_sorted.csv",
+      "medical": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/Data/medical_sorted.csv",
+      "power": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/Data/power_sorted.csv",
+      "roads_and_bridges": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/Data/roads_and_bridges_sorted.csv",
+      "sewer_and_water": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/Data/sewer_and_water_sorted.csv"
     };
 
     var VisBoxSpec = {
@@ -377,7 +377,7 @@
       "data": [
         {
           "name": "times",
-          "url": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/Time.csv",
+          "url": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/Data/Time.csv",
           "format": {"type": "csv"}
         },
         {
@@ -713,7 +713,7 @@
         {"name": "brush_store"},
         {
           "name": "source_0",
-          "url": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/mc1-reports-data-sorted-split.csv",
+          "url": "https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/Data/mc1-reports-data-sorted-split.csv",
           "format": {
             "type": "csv",
             "parse": {"location": "string", "time": "date"},
@@ -1277,7 +1277,7 @@
       view1 = new vega.View(runtime1).renderer("canvas").initialize("#vis1").run();
 
       // Fetch the time data (from a static source like "Time.csv")
-      fetch("https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/Time.csv")
+      fetch("https://raw.githubusercontent.com/haz-baker/VAST-MINI-Challenge-1/refs/heads/main/Data/Time.csv")
         .then(response => response.text())
         .then(csvText => {
           const times = csvText.split("\n").slice(1).map(row => row.split(",")[0]); 
@@ -1314,12 +1314,11 @@
     // Handle dataset change via dropdown
     document.getElementById("datasetSelect").addEventListener("change", (event) => {
       updateVegaSpec(event.target.value);
-      isPaused = !isPaused;
-          if (view) {
-            view.signal('paused', isPaused).run();
-            view1.signal('paused', isPaused).run();
-          }
-          button.textContent = isPaused ? 'Resume Animation' : 'Pause Animation';
+        if (view) {
+          view.signal('paused', isPaused).run();
+          view1.signal('paused', isPaused).run();
+        }
+        button.textContent = isPaused ? 'Resume Animation' : 'Pause Animation';
     });
 
     // Handle play/pause button click
